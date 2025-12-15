@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Coding - 흐름을 코딩하다</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* --- 1. 기본 설정 및 변수 --- */
+        :root {
+            --bg-color: #0a0a0c;
+            --text-color: #ffffff;
+            --primary-color: #7b2cbf;
+            --secondary-color: #3a86ff;
+            --accent-color: #00f5d4;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --font-main: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; transition: 0.3s; }
+        ul { list-style: none; }
+
+        /* --- 2. 유틸리티 및 애니메이션 --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 스크롤 애니메이션 클래스 */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- 3. 헤더 (네비게이션) --- */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 0;
+            z-index: 1000;
+            background: rgba(10, 10, 12, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+            color: var(--accent-color);
+        }
+
+        .btn-nav {
+            padding: 8px 20px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .btn-nav:hover {
+            box-shadow: 0 0 15px var(--primary-color);
+        }
+
+        /* --- 4. 히어로 섹션 --- */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 배경 효과 */
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-color) 0%, transparent 70%);
+            opacity: 0.2;
+            top: -100px;
+            left: -100px;
+            filter: blur(80px);
+            animation: float 10s infinite alternate;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--secondary-color) 0%, transparent 70%);
+            opacity: 0.2;
+            bottom: -100px;
+            right: -100px;
+            filter: blur(80px);
+            animation: float 8s infinite alternate-reverse;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-cta {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            background: white;
+            color: black;
+            border-radius: 30px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn-cta:hover {
+            transform: scale(1.05);
+            background: var(--accent-color);
+        }
+
+        /* 코드 타이핑 효과 박스 */
+        .code-preview {
+            margin-top: 50px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            font-family: var(--font-code);
+            text-align: left;
+            display: inline-block;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .typing-cursor::after {
+            content: '|';
+            animation: blink 1s step-start infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* --- 5. 특징 섹션 (Grid) --- */
+        .features {
+            padding: 100px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: var(--glass-bg);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary-color);
+        }
+
+        .icon-box {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            color: #bbb;
+        }
+
+        /* --- 6. 작동 방식 (가로 배치) --- */
+        .how-it-works {
+            padding: 100px 0;
+            background: linear-gradient(to bottom, var(--bg-color), #121216);
+        }
+
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 100px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+        }
+
+        .step-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .step-text {
+            flex: 1;
+        }
+
+        .step-text h3 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--secondary-color);
+        }
+
+        .step-image {
+            flex: 1;
+            height: 300px;
+            background: #1a1a1f;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* 더미 UI 그래픽 */
+        .ui-mockup {
+            width: 80%;
+            height: 60%;
+            background: #2a2a30;
+            border-radius: 8px;
+            position: relative;
+        }
+        .ui-mockup::before {
+            content: '';
+            position: absolute;
+            top: 10px; left: 10px;
+            width: 40px; height: 6px;
+            background: #444;
+            border-radius: 3px;
+        }
+
+        /* --- 7. CTA & 푸터 --- */
+        .cta-section {
+            padding: 150px 0;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(123, 44, 191, 0.2), transparent 70%);
+        }
+
+        footer {
+            padding: 50px 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* --- 8. 반응형 미디어 쿼리 --- */
+        @media (max-width: 768px) {
+            .hero-content h1 { font-size: 2.5rem; }
+            .nav-links { display: none; } /* 모바일에서는 메뉴 숨김 (간소화) */
+            .step-item, .step-item:nth-child(even) { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <nav>
+                <a href="#" class="logo">Vibe<span class="gradient-text">Coding</span></a>
+                <ul class="nav-links">
+                    <li><a href="#features">기능 소개</a></li>
+                    <li><a href="#how-it-works">작동 방식</a></li>
+                    <li><a href="#pricing">요금제</a></li>
+                </ul>
+                <a href="#" class="btn-nav">시작하기</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container hero-content">
+            <h1 class="reveal">코딩의 리듬을<br><span class="gradient-text">다시 정의하다</span></h1>
+            <p class="reveal">복잡한 로직은 AI에게 맡기고, 당신은 흐름(Flow)에 집중하세요.<br>Vibe Coding은 개발자의 직관을 코드로 변환합니다.</p>
+            <div class="reveal">
+                <a href="#" class="btn-cta">무료로 체험하기 <i class="fas fa-arrow-right"></i></a>
+            </div>
+            
+            <div class="code-preview reveal">
+                <span id="typewriter" class="typing-cursor"></span>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-title reveal">
+                <h2>왜 <span class="gradient-text">Vibe Coding</span> 인가요?</h2>
+                <p>개발자가 오직 창의성에만 집중할 수 있도록 설계되었습니다.</p>
+            </div>
+            <div class="feature-grid">
+                <div class="feature-card reveal">
+                    <div class="icon-box"><i class="fas fa-bolt"></i></div>
+                    <h3>초고속 워크플로우</h3>
+                    <p>생각하는 속도로 코드를 작성하세요. AI가 문맥을 파악하여 다음 로직을 실시간으로 제안합니다.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="icon-box"><i class="fas fa-magic"></i></div>
+                    <h3>자연어 투 코드</h3>
+                    <p>"로그인 페이지 만들어줘"라고 말하면, 디자인과 기능이 포함된 컴포넌트가 즉시 생성됩니다.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="icon-box"><i class="fas fa-cube"></i></div>
+                    <h3>시각적 디버깅</h3>
+                    <p>복잡한 로그 대신 데이터의 흐름을 시각적으로 보여주어 버그를 직관적으로 해결합니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="steps">
+                <div class="step-item reveal">
+                    <div class="step-text">
+                        <h3>01. 아이디어 입력</h3>
+                        <p>구현하고 싶은 기능을 자연어로 설명하거나 대략적인 스케치를 업로드하세요. Vibe 엔진이 의도를 분석합니다.</p>
+                    </div>
+                    <div class="step-image">
+                        <div class="ui-mockup" style="background: #333;"></div>
+                    </div>
+                </div>
+                <div class="step-item reveal">
+                    <div class="step-text">
+                        <h3>02. AI 페어 프로그래밍</h3>
+                        <p>실시간으로 최적화된 코드를 생성하고, 보안 취약점을 자동으로 점검합니다. 당신은 감독관이 됩니다.</p>
+                    </div>
+                    <div class="step-image">
+                        <div class="ui-mockup" style="border: 2px solid var(--primary-color);"></div>
+                    </div>
+                </div>
+                <div class="step-item reveal">
+                    <div class="step-text">
+                        <h3>03. 원클릭 배포</h3>
+                        <p>작성된 코드는 클라우드 환경에 즉시 배포되며, 전 세계 어디서든 접근 가능한 링크가 생성됩니다.</p>
+                    </div>
+                    <div class="step-image">
+                        <div class="ui-mockup" style="background: linear-gradient(45deg, #111, #222);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="container reveal">
+            <h2>지금 바로 몰입을 경험하세요</h2>
+            <p style="color: #aaa; margin: 20px 0 40px;">첫 14일은 무료입니다. 카드 등록 없이 시작하세요.</p>
+            <a href="#" class="btn-cta">Vibe Coding 시작하기</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Vibe Coding Inc. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // 1. 스크롤 애니메이션 (Intersection Observer)
+        const revealElements = document.querySelectorAll('.reveal');
+
+        const revealCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // 한 번 나타나면 관찰 중지 (선택사항)
+                    // observer.unobserve(entry.target);
+                }
+            });
+        };
+
+        const revealOptions = {
+            threshold: 0.15, // 요소가 15% 보일 때 트리거
+            rootMargin: "0px 0px -50px 0px"
+        };
+
+        const observer = new IntersectionObserver(revealCallback, revealOptions);
+
+        revealElements.forEach(el => {
+            observer.observe(el);
+        });
+
+        // 2. 히어로 섹션 타이핑 효과
+        const textElement = document.getElementById('typewriter');
+        const textToType = "const future = await Vibe.create('New World');";
+        let index = 0;
+
+        function typeWriter() {
+            if (index < textToType.length) {
+                textElement.innerHTML += textToType.charAt(index);
+                index++;
+                let speed = Math.random() * 100 + 50; // 랜덤 타이핑 속도
+                setTimeout(typeWriter, speed);
+            }
+        }
+
+        // 페이지 로드 후 잠시 뒤 타이핑 시작
+        window.onload = () => {
+            setTimeout(typeWriter, 1000);
+        };
+    </script>
+</body>
+</html>
